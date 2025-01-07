@@ -1,0 +1,65 @@
+schema-version: v3
+kind: action
+metadata:
+  name: action-understanding-object-oriented-code
+  display-name: action-understanding-object-oriented-code
+  description: Analyze an object-oriented design recursively and generate documentation.
+  version: 0.0.1
+spec:
+  type: python
+  docs:
+    pt-br: docs/pt-br/docs.md
+    en-us: docs/en-us/docs.md
+  inputs:
+    - label: Execute Slug
+      name: execute_slug
+      type: text
+      required: true
+      default: rqc-pseudogen-techdoc
+      help: "Slug de execução para o comando remoto."
+
+    - label: Planning Slug
+      name: planning_slug
+      type: text
+      required: true
+      default: rqc-order-reading-project
+      help: Plano de execução do processamento do projeto
+
+    - label: Account Slug
+      name: account_slug
+      type: text
+      required: true
+      default: growth-demo
+      help: "Slug da conta para autenticação na API."
+
+    - label: Client ID
+      name: client_id
+      type: text
+      required: true
+      default: 2162e494-690f-4507-9c3b-ac9a1612a61a
+      help: "ID do cliente para autenticação na API."
+
+    - label: Client Secret
+      name: client_secret
+      type: password
+      required: true
+      default: 6f02pf9qBsmVRK5rtwg2t1Oqfiz0BE2yQ2bp68SwUp2F8IeCqx9og094x4C9gWkZ
+      help: "Segredo do cliente para autenticação na API."
+
+    - label: Folder Path
+      name: folder_path
+      type: text
+      required: false
+      default: "./files-to-analyse"
+      help: "Caminho para a pasta contendo os arquivos a serem processados."
+
+    - label: Extension File
+      name: extension_file
+      type: text
+      required: true
+      default: ".cs"
+      pattern: ^\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?$
+      help: "Informe a extensão do arquivo (ex.: .cs, .json, .tar.gz)."
+  python:
+    workdir: .
+    script: script.py
