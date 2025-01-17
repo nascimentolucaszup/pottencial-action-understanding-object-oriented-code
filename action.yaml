@@ -15,15 +15,8 @@ spec:
       name: execute_slug
       type: text
       required: true
-      default: rqc-pseudogen-techdoc
+      default: rqc-domain-documentation
       help: "Slug de execução para o comando remoto."
-
-    - label: Planning Slug
-      name: planning_slug
-      type: text
-      required: true
-      default: rqc-order-reading-project
-      help: Plano de execução do processamento do projeto
 
     - label: Account Slug
       name: account_slug
@@ -43,22 +36,21 @@ spec:
       name: client_secret
       type: password
       required: true
-      default: 6f02pf9qBsmVRK5rtwg2t1Oqfiz0BE2yQ2bp68SwUp2F8IeCqx9og094x4C9gWkZ
+      default: 7MLZnp6892OX5lPrBXGRTbn09412k89zmoTrBNlM8W1Xt4VnqwZ4rVnJAYU4iE40
       help: "Segredo do cliente para autenticação na API."
 
-    - label: Folder Path
-      name: folder_path
+    - label: Project Path
+      name: project_path
       type: text
       required: false
-      default: "./files-to-analyse"
+      default: "./file-to-analyze/Pottencial.GG/Application"
       help: "Caminho para a pasta contendo os arquivos a serem processados."
 
-    - label: Extension File
-      name: extension_file
+    - label: Controller Path
+      name: controller_path
       type: text
       required: true
-      default: ".cs"
-      pattern: ^\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?$
+      default: "./file-to-analyze/Pottencial.GG/Application/Pottencial.GG.Api/Controllers/LimiteTaxaController.cs"
       help: "Informe a extensão do arquivo (ex.: .cs, .json, .tar.gz)."
   python:
     workdir: .
