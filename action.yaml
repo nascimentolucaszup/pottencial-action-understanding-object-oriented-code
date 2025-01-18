@@ -22,21 +22,21 @@ spec:
       name: account_slug
       type: text
       required: true
-      default: growth-demo
+      default: pottencial
       help: "Slug da conta para autenticação na API."
 
     - label: Client ID
       name: client_id
       type: text
       required: true
-      default: 2162e494-690f-4507-9c3b-ac9a1612a61a
+      default: d1fa520a-992c-4107-b6dc-beb12d5a29e5
       help: "ID do cliente para autenticação na API."
 
     - label: Client Secret
       name: client_secret
       type: password
       required: true
-      default: 7MLZnp6892OX5lPrBXGRTbn09412k89zmoTrBNlM8W1Xt4VnqwZ4rVnJAYU4iE40
+      default: kYxFkKWplnyPpdIqxcDUntBUnnOaposMykyhguPeiJSqKNJIyZQvTHoJZXCpqdXK
       help: "Segredo do cliente para autenticação na API."
 
     - label: Project Path

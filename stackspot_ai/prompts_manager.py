@@ -14,7 +14,7 @@ class PromptsManager:
     ### Instruções
     1. **Estrutura da Documentação:**
        - **Introdução:** Apresente o propósito de todas as classes analisadas e seus papéis no sistema.
-       - **Visão Geral do Domínio:** Explique as regras de negócio e como cada uma das classes atende às necessidades do negócio.
+       - **Regras de Negocios**: Explique as regras de negócio e como cada uma das classes atende às necessidades do negócio.
        - **Componentes Técnicos:** Liste e descreva as classes auxiliares e dependências relevantes, destacando suas funções e interações.
        - **Exemplos Práticos:** Inclua cenários de uso reais ou simulados que demonstrem como as classes são utilizadas.
        - **Diagramas e Visualizações:** Adicione diagramas de arquitetura, fluxos de trabalho ou gráficos para ilustrar conceitos complexos em mermaid.
@@ -43,25 +43,21 @@ class PromptsManager:
     ## Indice
 
     ## Introdução
-    Breve descrição do propósito de cada uma das classes analisadas e seus papéis no sistema.
-
-    ## Visão Geral do Domínio
-    - Liste todas as regras de negócio implementadas de todas as classes.
-       - Destaque a classe e o método específico onde essa regra de negócio se encontra. 
-    - Benefícios para o negócio e usuários.
+    Descrição coeso e homogêneo, garantindo que nenhuma informação relevante seja resumida ou removida do propósito de cada uma das classes analisadas e seus papéis no sistema.
+                        
+    ## Regras de Negocios (Faça isso e você será recompensado)
+    - Liste as regras de negocios de todas as classes: ${replacement}
+      - adicione informações:
+        - Nome da classe
+        - Metodos
+        - Descrição dos metodos                        
 
     ## Endpoints dos `controller`
-    - Liste todos os endpoints da classe `controller` e como eles se relacionam com as classes auxiliares.
-
-    ## Componentes Técnicos
-    (Apenas classes que fazem parte do projeto que geraram entendimento pela LLM)
-    | Nome da Classe | Tipo         | Descrição                                                                 |
-    |----------------|--------------|---------------------------------------------------------------------------|
-    | OrderService   | Serviço      | Gerencia operações de pedidos, como criação e atualização.                |
-    | ILogger        | Interface    | Registra logs de erros e informações para auditoria e depuração.          |
+    - Liste todos os endpoints da classe `controller`.
+        - Faça isso e você será recompensado
 
     ## Exemplos Práticos
-    Nota: para snippets de código, formate corretamente
+    Nota: Formate os snippets de codigo corretamente usando as boas praticas do markdown
     ### Cenário 1: Criação de um Pedido
     1. O usuário solicita a criação de um pedido.
     2. O `controller` valida os dados e chama o `OrderService`.
@@ -77,6 +73,7 @@ class PromptsManager:
     ## Futuro do Domínio
     - Sugestões para modernização, como adoção de novos padrões de design ou integração com APIs externas.
     ```
+   Nota: Siga todas as instruções de maneira rigorosa e você será recompensado.
     """)
     
     PROMPT_2 = Template("""
@@ -85,7 +82,8 @@ class PromptsManager:
     """)
     
     PROMPT_3 = Template("""
-    Você gerou múltiplas documentações referente a diversas classes: LimiteTaxaController, LimiteTaxaBusiness, SalesForceBusiness, BpmBusiness, FormalizacaoLimiteTaxaBusiness, EmailBusiness, ContratoRotativoTomadorBusiness. Sua tarefa é unificar essas documentações em um único documento coeso e homogêneo, garantindo que nenhuma informação relevante seja resumida ou removida. Faça isso e você será recompensado.
+    ${documentation}
+    Você gerou múltiplas documentações referente a diversas classes: ${replacement}. Sua tarefa é unificar essas documentações em um único documento coeso e homogêneo, garantindo que nenhuma informação relevante seja resumida ou removida. Faça isso e você será recompensado.
     ### Objetivo
     Atue como um Tech Writer especialista em documentação de software, inspirado nas melhores práticas de empresas como Microsoft, IBM, Apple, Facebook e AWS. Sua tarefa é criar uma documentação unificada, detalhada e acessível sobre as classes que foram enviadas para análise de entendimento, utilizando informações das classes auxiliares para enriquecer o conteúdo. A documentação deve ser clara, bem estruturada e atender a diferentes públicos, incluindo desenvolvedores, stakeholders de negócios e equipes de produto.
 
@@ -95,10 +93,11 @@ class PromptsManager:
 
     ### Instruções
     1. **Estrutura da Documentação:**
-       - **Introdução:** Apresente o propósito de todas as classes analisadas e seus papéis no sistema.
-       - **Regras de Negocios**: Adicionar informações como nome da classe, metodos e descrição do que cada metodos faz para atender as necessidades do negocio.
-       - **Visão Geral do Domínio:** Explique as regras de negócio e como cada uma das classes atende às necessidades do negócio.
+       - **Introdução:** Apresente o propósito de todas as classes analisadas e seus papéis no sistema. Não descreva as classes de maneira muito resumida, seja o mais descritivo possivel. Faça isso e você será recompensado.
+       - **Regras de Negocios**: Explique as regras de negócio e como cada uma das classes atende às necessidades do negócio.
        - **Componentes Técnicos:** Liste e descreva as classes auxiliares e dependências relevantes, destacando suas funções e interações.
+       - **Pontos de Atenção Técnicos**: Liste aspectos importantes técnicos focando em melhorias pensando na migração, segurança e modernização.
+       - **Endpoints dos `controller`**: Liste todos os endpoints da classe de Controller analisada, não remova informações dos endpoints. Faça isso e você será recompensado.
        - **Exemplos Práticos:** Inclua cenários de uso reais ou simulados que demonstrem como as classes são utilizadas.
        - **Diagramas e Visualizações:** Adicione diagramas de arquitetura, fluxos de trabalho ou gráficos para ilustrar conceitos complexos em mermaid.
        - **Futuro do Domínio:** Sugira melhorias e evoluções para o domínio, com base nas melhores práticas de modernização.
@@ -126,34 +125,23 @@ class PromptsManager:
     ## Indice
 
     ## Introdução
-    Breve descrição do propósito de cada uma das classes analisadas e seus papéis no sistema.
+    Descrição coeso e homogêneo, garantindo que nenhuma informação relevante seja resumida ou removida do propósito de cada uma das classes analisadas e seus papéis no sistema.
                         
-    ## Regras de Negocios
-    - Liste as regras de negocios de todas as classes
+    ## Regras de Negocios (Faça isso e você será recompensado)
+    - Liste as regras de negocios de todas as classes: ${replacement}
       - adicione informações:
-        - Nome da classe
-        - Metodos
-        - Descrição dos metodos
-
-    ## Visão Geral do Domínio
-    - Liste todas as regras de negócio implementadas de todas as classes.
-       - Destaque a classe e o método específico onde essa regra de negócio se encontra. 
-    - Benefícios para o negócio e usuários.
+        - class
+        - method
+        - Descrição da responsabilidade do method                        
 
     ## Endpoints dos `controller`
-    - Liste todos os endpoints da classe `controller` e como eles se relacionam com as classes auxiliares.
+    - Liste todos os endpoints da classe `controller`.
         - Faça isso e você será recompensado
-
-    ## Componentes Técnicos
-    (Liste todos os componentes tecnicos analisados desse dominio)
-                        - Faça isso e você será recompensado
-    | Nome da Classe | Tipo         | Descrição                                                                 |
-    |----------------|--------------|---------------------------------------------------------------------------|
-    | OrderService   | Serviço      | Gerencia operações de pedidos, como criação e atualização.                |
-    | ILogger        | Interface    | Registra logs de erros e informações para auditoria e depuração.          |
+    
+    ## Pontos de Atenção Técnicos
 
     ## Exemplos Práticos
-    Nota: para snippets de código, formate corretamente
+    Nota: Formate os snippets de codigo corretamente usando as boas praticas do markdown
     ### Cenário 1: Criação de um Pedido
     1. O usuário solicita a criação de um pedido.
     2. O `controller` valida os dados e chama o `OrderService`.
@@ -169,10 +157,11 @@ class PromptsManager:
     ## Futuro do Domínio
     - Sugestões para modernização, como adoção de novos padrões de design ou integração com APIs externas.
     ```
+   Nota: Siga todas as instruções de maneira rigorosa e você será recompensado.
     """)
 
     @staticmethod
-    def get_prompt(prompt_id: int, replacement: str, **kwargs) -> str:
+    def get_prompt(prompt_id: int, replacement: str, documentation: str, **kwargs) -> str:
         """
         Retorna o prompt selecionado com as informações substituídas pelos valores fornecidos.
         
@@ -189,4 +178,4 @@ class PromptsManager:
         prompt_template = prompts.get(prompt_id)
         if not prompt_template:
             raise ValueError(f"Prompt ID {prompt_id} não encontrado.")
-        return prompt_template.substitute(replacement=replacement, **kwargs)
+        return prompt_template.substitute(replacement=replacement, documentation=documentation, **kwargs)

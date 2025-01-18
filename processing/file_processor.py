@@ -31,6 +31,8 @@ class FileProcessor:
         self.max_file_workers = max_file_workers
         self.use_parallel = use_parallel
         self.first_file_name = None  # Armazena o nome do primeiro arquivo processado
+        self.processed_files = []  # Lista para armazenar os nomes dos arquivos processados
+        self.processed_docs = []
 
     def process_json(self, json_data):
         """
@@ -102,16 +104,20 @@ class FileProcessor:
         file_name = os.path.basename(file_path)
         try:
             file_data = self._read_file(file_path)
-            data = self.prompts_manager.get_prompt(prompt_value, replacement=file_data)
+            data = self.prompts_manager.get_prompt(prompt_value, replacement=file_data, documentation="")
             # Executa o Quick Command no conteúdo do arquivo
             response = self._execute_and_poll(data)
 
             # Salva a resposta em um arquivo Markdown
-            # self._save_to_markdown(file_name, response)
+            self._save_to_markdown(file_name.replace(".cs", ""), response.get('result').replace("```markdown", "").replace("```", ""))
+            self.processed_docs.append(response.get('result'))
 
             # Armazena o nome do primeiro arquivo processado
             if self.first_file_name is None:
                 self.first_file_name = file_name
+
+            # Adiciona o nome do arquivo à lista de arquivos processados
+            self.processed_files.append(file_name)
 
         except Exception as e:
             print(f"Erro ao processar o arquivo '{file_name}': {e}")
@@ -165,7 +171,8 @@ class FileProcessor:
         Realiza uma chamada extra para StackSpot AI após a leitura completa do JSON.
         """
         try:
-            data = self.prompts_manager.get_prompt(3, replacement=None)
+            data = self.prompts_manager.get_prompt(3, replacement=self.get_processed_files_as_string(), documentation=self.get_processed_docs_as_string())
+            print("ultimo prompt: {data}")
             execution_id = self.quick_command_manager.execute_quick_command(
                 self.execute_slug, data
             )
@@ -173,10 +180,18 @@ class FileProcessor:
             response = self.quick_command_manager.poll_quick_command_status(callback_url)
             # Salva a resposta em um arquivo Markdown usando o nome do primeiro arquivo processado
             if self.first_file_name:
-                self._save_to_markdown(self.first_file_name, response.get('result').replace("```markdown", "").replace("```", ""))
+                self._save_to_markdown(f"{self.first_file_name.replace('Controller.cs', '')}_Doc_Unificada", response.get('result').replace("```markdown", "").replace("```", ""))
             else:
                 print("Nenhum arquivo foi processado para salvar a resposta.")
 
             print(f"Chamada para StackSpot AI concluída com sucesso: {response}")
         except Exception as e:
             print(f"Erro ao realizar a chamada para StackSpot AI: {e}")
+
+    def get_processed_files_as_string(self):
+        """ Retorna os nomes dos arquivos processados como uma string. """
+        return ", ".join(self.processed_files)
+    
+    def get_processed_docs_as_string(self):
+        """ Retorna os nomes dos arquivos processados como uma string. """
+        return "\n".join(self.processed_docs)
