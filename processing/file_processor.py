@@ -1,5 +1,6 @@
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import re
 
 
 class FileProcessor:
@@ -9,6 +10,7 @@ class FileProcessor:
         execute_slug,
         token_manager,
         quick_command_manager,
+        file_handler_processor,
         prompts_manager,
         max_file_workers=4,
         use_parallel=False,
@@ -27,11 +29,13 @@ class FileProcessor:
         self.execute_slug = execute_slug
         self.token_manager = token_manager
         self.quick_command_manager = quick_command_manager
+        self.file_handler_processor = file_handler_processor
         self.prompts_manager = prompts_manager
         self.max_file_workers = max_file_workers
         self.use_parallel = use_parallel
         self.first_file_name = None  # Armazena o nome do primeiro arquivo processado
         self.processed_files = []  # Lista para armazenar os nomes dos arquivos processados
+        self.processed_files2 = []  # Lista para armazenar os nomes dos arquivos processados
         self.processed_docs = []
 
     def process_json(self, json_data):
@@ -104,13 +108,15 @@ class FileProcessor:
         file_name = os.path.basename(file_path)
         try:
             file_data = self._read_file(file_path)
-            data = self.prompts_manager.get_prompt(prompt_value, replacement=file_data, documentation="")
-            # Executa o Quick Command no conteúdo do arquivo
-            response = self._execute_and_poll(data)
+            self.file_handler_processor.initialize(file_data)
+            file_data = self.file_handler_processor.process()
+            self.processed_files2.append(f"// {file_name}\n{file_data}\n")
+            # data = self.prompts_manager.get_prompt(prompt_value, replacement=file_data, documentation="")
+            # # Executa o Quick Command no conteúdo do arquivo
+            # response = self._execute_and_poll(data)
 
-            # Salva a resposta em um arquivo Markdown
-            self._save_to_markdown(file_name.replace(".cs", ""), response.get('result').replace("```markdown", "").replace("```", ""))
-            self.processed_docs.append(response.get('result'))
+            # self._save_to_markdown(file_name.replace(".cs", ""), self.remove_last_occurrence(response.get('result')))
+            # self.processed_docs.append(response.get('result'))
 
             # Armazena o nome do primeiro arquivo processado
             if self.first_file_name is None:
@@ -171,8 +177,9 @@ class FileProcessor:
         Realiza uma chamada extra para StackSpot AI após a leitura completa do JSON.
         """
         try:
-            data = self.prompts_manager.get_prompt(3, replacement=self.get_processed_files_as_string(), documentation=self.get_processed_docs_as_string())
-            print("ultimo prompt: {data}")
+            data = self.prompts_manager.get_prompt(3, replacement=self.get_processed_files_as_string(), documentation="".join(self.processed_files2))
+            # data = "".join(self.processed_files2)
+            print(f"ultimo prompt: {data}")
             execution_id = self.quick_command_manager.execute_quick_command(
                 self.execute_slug, data
             )
@@ -180,7 +187,7 @@ class FileProcessor:
             response = self.quick_command_manager.poll_quick_command_status(callback_url)
             # Salva a resposta em um arquivo Markdown usando o nome do primeiro arquivo processado
             if self.first_file_name:
-                self._save_to_markdown(f"{self.first_file_name.replace('Controller.cs', '')}_Doc_Unificada", response.get('result').replace("```markdown", "").replace("```", ""))
+                self._save_to_markdown(f"{self.first_file_name.replace('Controller.cs', '')}_Doc_Unificada", self.remove_last_occurrence(response.get('result')))
             else:
                 print("Nenhum arquivo foi processado para salvar a resposta.")
 
@@ -195,3 +202,7 @@ class FileProcessor:
     def get_processed_docs_as_string(self):
         """ Retorna os nomes dos arquivos processados como uma string. """
         return "\n".join(self.processed_docs)
+    
+    def remove_last_occurrence(text, substring):
+        # Dividir o texto em duas partes usando rsplit
+        return substring.replace("```markdown", "", 1)

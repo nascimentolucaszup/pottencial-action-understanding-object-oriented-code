@@ -5,6 +5,7 @@ from stackspot_ai.knowledge_sources_manager import KnowledgeSourcesManager
 from stackspot_ai.remote_quick_command_manager import QuickCommandManager
 from stackspot_ai.prompts_manager import PromptsManager
 from processing.class_processor import CSharpDependencyAnalyzer
+from processing.file_handler_processor import FileHandlerProcessor
 
 def run(metadata):
     # Obtendo informações dos metadados
@@ -41,6 +42,7 @@ def run(metadata):
     )
 
     prompts_manager = PromptsManager()
+    file_handler_processor = FileHandlerProcessor()
 
     # Inicializando o FileProcessor
     processor = FileProcessor(
@@ -49,6 +51,7 @@ def run(metadata):
         token_manager=token_manager,
         prompts_manager=prompts_manager,
         quick_command_manager=quick_command_manager,
+        file_handler_processor=file_handler_processor
     )
 
     # Processando os arquivos

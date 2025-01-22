@@ -103,7 +103,8 @@ class CSharpDependencyAnalyzer:
 
     def _is_valid_dependency(self, file_path: str) -> bool:
         """Verifica se o arquivo atende aos padrões desejados"""
-        return file_path.endswith("Business.cs") or file_path.endswith("Service.cs") or file_path.endswith("Repository.cs")
+        return file_path.endswith("Business.cs") or file_path.endswith("Service.cs") 
+            # or file_path.endswith("Repository.cs")
 
     def generate_controller_json_report(self, controller_dependency: ClassDependency) -> str:
         """Gera um relatório JSON focado no controller e suas dependências"""
