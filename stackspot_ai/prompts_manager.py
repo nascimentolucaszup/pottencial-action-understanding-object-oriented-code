@@ -82,7 +82,8 @@ class PromptsManager:
     """)
 
     PROMPT_3 = Template("""
-      <codigos>${documentation}<codigos>
+        <codigos>${documentation}<codigos>
+        Extrair ou realizar um recorte as funcionalidades específica do domínio, como parte de uma estratégia de modernização do ecossistema. Utilize a abordagem de estrangulamento para realizar essa extração, garantindo que o escopo e os critérios sejam bem definidos. Certifique-se de documentar o processo, os desafios enfrentados e os resultados esperados.
     """)
     
    #  PROMPT_3 = Template("""

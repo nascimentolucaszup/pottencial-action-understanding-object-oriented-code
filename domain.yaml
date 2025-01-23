@@ -1,0 +1,42 @@
+schema-version: v1
+kind: domain
+metadata:
+  name: main-domain
+  description: "Domínio principal do projeto com suporte a dependências recursivas e métodos específicos"
+spec:
+  main-class:
+    name: MainClass
+    path: src/main/java/com/example/domain/MainClass.java
+    description: "Classe principal do domínio"
+    methods:
+      - method1
+      - method2
+    dependencies:
+      - name: DependencyClass1
+        path: src/main/java/com/example/domain/DependencyClass1.java
+        description: "Primeira dependência do domínio principal"
+        methods:
+          - dependencyMethod1
+          - dependencyMethod2
+        dependencies:
+          - name: SubDependencyClass1
+            path: src/main/java/com/example/domain/SubDependencyClass1.java
+            description: "Subdependência da primeira dependência"
+            methods:
+              - subDependencyMethod1
+          - name: SubDependencyClass2
+            path: src/main/java/com/example/domain/SubDependencyClass2.java
+            description: "Outra subdependência da primeira dependência"
+            methods:
+              - subDependencyMethod2
+      - name: DependencyClass2
+        path: src/main/java/com/example/domain/DependencyClass2.java
+        description: "Segunda dependência do domínio principal"
+        methods:
+          - dependencyMethod3
+        dependencies:
+          - name: SubDependencyClass3
+            path: src/main/java/com/example/domain/SubDependencyClass3.java
+            description: "Subdependência da segunda dependência"
+            methods:
+              - subDependencyMethod3
