@@ -1,15 +1,27 @@
 import os
 import re
-from typing import Set, Optional, Dict, List
+from typing import List, Dict, Optional
 from dataclasses import dataclass
 import json
 
 @dataclass
-class ClassDependency:
-    """Armazena informações de dependência de classes"""
-    name: str
-    file_path: str
-    dependencies: List[Dict] = None  # Lista de dependências aninhadas
+class Dependency:
+    """Representa uma dependência de classe"""
+    path: str
+    methods: List[str]
+    subdependencies: List['Dependency']
+
+@dataclass
+class MainClass:
+    """Representa a classe principal"""
+    path: str
+    methods: List[str]
+
+@dataclass
+class DependencyTree:
+    """Representa a estrutura completa do JSON"""
+    main_class: MainClass
+    dependencies: List[Dependency]
 
 class CSharpClassAnalyzer:
     def __init__(self):
@@ -25,13 +37,11 @@ class CSharpClassAnalyzer:
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 content = file.read()
-                # print(f"content: {content}")
 
             clean_content = self._remove_comments(content)
             for pattern in ['object_instantiation', 'inheritance']:
                 matches = re.findall(self._patterns[pattern], clean_content)
                 dependencies.update(matches)
-                # print(f"dependencies: {dependencies}")
 
         except FileNotFoundError:
             print(f"Erro: Arquivo {file_path} não encontrado")
@@ -62,7 +72,7 @@ class CSharpDependencyAnalyzer:
                     if class_name:
                         self.class_files[class_name] = file_path
 
-    def analyze_dependencies_tree(self, file_path: str, max_depth: int = 0, current_depth: int = 0) -> Optional[ClassDependency]:
+    def analyze_dependencies_tree(self, file_path: str, max_depth: int = 0, current_depth: int = 0) -> Optional[Dependency]:
         """Analisa recursivamente as dependências de uma classe"""
         if current_depth > max_depth:
             return None
@@ -79,16 +89,12 @@ class CSharpDependencyAnalyzer:
             if dep_file_path and self._is_valid_dependency(dep_file_path):
                 nested_dependency = self.analyze_dependencies_tree(dep_file_path, max_depth, current_depth + 1)
                 if nested_dependency:
-                    dependency_objects.append({
-                        "class_name": nested_dependency.name,
-                        "file_path": nested_dependency.file_path,
-                        "dependencies": nested_dependency.dependencies
-                    })
+                    dependency_objects.append(nested_dependency)
 
-        return ClassDependency(
-            name=class_name,
-            file_path=file_path,
-            dependencies=dependency_objects
+        return Dependency(
+            path=file_path,
+            methods=[],  # Métodos podem ser extraídos se necessário
+            subdependencies=dependency_objects
         )
 
     def _extract_class_name(self, file_path: str) -> Optional[str]:
@@ -103,19 +109,25 @@ class CSharpDependencyAnalyzer:
 
     def _is_valid_dependency(self, file_path: str) -> bool:
         """Verifica se o arquivo atende aos padrões desejados"""
-        return file_path.endswith("Business.cs") or file_path.endswith("Service.cs") 
-            # or file_path.endswith("Repository.cs")
+        return file_path.endswith("Business.cs") or file_path.endswith("Service.cs") or file_path.endswith("Repository.cs")
 
-    def generate_controller_json_report(self, controller_dependency: ClassDependency) -> str:
-        """Gera um relatório JSON focado no controller e suas dependências"""
-        if not controller_dependency:
-            return json.dumps({"error": "Controller dependency not found"}, indent=2)
+    def generate_json_report(self, main_class_path: str, max_depth: int = 0) -> str:
+        """Gera o JSON na estrutura solicitada"""
+        main_class_name = self._extract_class_name(main_class_path)
+        if not main_class_name:
+            return json.dumps({"error": "Main class not found"}, indent=2)
 
-        controller_json = {
-            "controller": {
-                "name": controller_dependency.name,
-                "file_path": controller_dependency.file_path,
-                "dependencies": controller_dependency.dependencies
-            }
-        }
-        return json.dumps(controller_json, indent=2)
+        main_class = MainClass(
+            path=main_class_path,
+            methods=[]  # Métodos podem ser extraídos se necessário
+        )
+
+        dependencies = self.analyze_dependencies_tree(main_class_path, max_depth=max_depth)
+        print(f"dependencies: {dependencies}")
+
+        dependency_tree = DependencyTree(
+            main_class=main_class,
+            dependencies=[dependencies] if dependencies else []
+        )
+
+        return json.dumps(dependency_tree, default=lambda o: o.__dict__, indent=2)

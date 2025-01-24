@@ -7,6 +7,7 @@ from stackspot_ai.prompts_manager import PromptsManager
 from stackspot_ai.remote_quick_command_manager import QuickCommandManager
 from stackspot_ai.token_manager import TokenManager
 from view.business_documentation import BusinessDocumentation
+from processing.class_processor import CSharpDependencyAnalyzer
 
 # Carregar as variáveis do arquivo .env
 load_dotenv()
@@ -55,13 +56,8 @@ def render_home():
         """
     )
 
-# Função para renderizar a página de Documentação Técnica
-def render_documentacao_tecnica():
-    st.title("Documentação Técnica")
-    st.write("Aqui você pode adicionar informações relacionadas à documentação técnica.")
-
 # Sidebar para navegação
-tab1, tab2, tab3 = st.tabs(["Home", "Documentação de Negócio", "Documentação Técnica"])
+tab1, tab2 = st.tabs(["Home", "Documentação de Negócio"])
 
 token_manager = TokenManager(
     account_slug,
@@ -79,6 +75,9 @@ quick_command_manager = QuickCommandManager(
 prompts_manager = PromptsManager()
 file_handler_processor = FileHandlerProcessor()
 
+analyzer = CSharpDependencyAnalyzer("./file-to-analyze/Pottencial.GG/Application")
+analyzer.initialize()
+
 # Inicializando o FileProcessor
 processor = FileProcessor(
     api_url="https://genai-code-buddy-api.stackspot.com/v1",
@@ -90,12 +89,11 @@ processor = FileProcessor(
 )
 
 doc = BusinessDocumentation(
-    file_processor=processor
+    file_processor=processor,
+    class_processor=analyzer
 )
 
 with tab1:
     render_home()
 with tab2:
     doc.render()
-with tab3:
-    render_documentacao_tecnica()

@@ -25,34 +25,34 @@ def run(metadata):
     print("=== Controller JSON Report ===")
     print(json_data)
 
-    token_manager = TokenManager(
-        account_slug,
-        client_id,
-        client_secret
-    )
+    # token_manager = TokenManager(
+    #     account_slug,
+    #     client_id,
+    #     client_secret
+    # )
 
-    token_manager.refresh_token()
-    token = token_manager.get_token()
+    # token_manager.refresh_token()
+    # token = token_manager.get_token()
 
-    # Inicializando o QuickCommandManager
-    quick_command_manager = QuickCommandManager(
-        api_url="https://genai-code-buddy-api.stackspot.com/v1/quick-commands/create-execution",
-        token_manager=token_manager,
-        initial_token=token
-    )
+    # # Inicializando o QuickCommandManager
+    # quick_command_manager = QuickCommandManager(
+    #     api_url="https://genai-code-buddy-api.stackspot.com/v1/quick-commands/create-execution",
+    #     token_manager=token_manager,
+    #     initial_token=token
+    # )
 
-    prompts_manager = PromptsManager()
-    file_handler_processor = FileHandlerProcessor()
+    # prompts_manager = PromptsManager()
+    # file_handler_processor = FileHandlerProcessor()
 
-    # Inicializando o FileProcessor
-    processor = FileProcessor(
-        api_url="https://genai-code-buddy-api.stackspot.com/v1",
-        execute_slug=execute_slug,
-        token_manager=token_manager,
-        prompts_manager=prompts_manager,
-        quick_command_manager=quick_command_manager,
-        file_handler_processor=file_handler_processor
-    )
+    # # Inicializando o FileProcessor
+    # processor = FileProcessor(
+    #     api_url="https://genai-code-buddy-api.stackspot.com/v1",
+    #     execute_slug=execute_slug,
+    #     token_manager=token_manager,
+    #     prompts_manager=prompts_manager,
+    #     quick_command_manager=quick_command_manager,
+    #     file_handler_processor=file_handler_processor
+    # )
 
-    # Processando os arquivos
-    processor.process_json(json.loads(json_data))
+    # # Processando os arquivos
+    # processor.process_json(json.loads(json_data))

@@ -25,6 +25,8 @@ class FileProcessor:
         self.metadata = None
         self.main_class = None
         self.main_class_code = None
+        self.execution_mode = None
+        self.documentation_type = None
         self.dependencies = []
         self.processed_files = []
 
@@ -35,6 +37,9 @@ class FileProcessor:
             self.metadata = json_data.get("metadata", {})
             self.main_class = json_data.get("main_class", {})
             self.dependencies = json_data.get("dependencies", [])
+            self.execution_mode = json_data.get("execution_mode", None)
+            self.documentation_type = json_data.get("documentation_type", None)
+            print(f"tipo documento {self.documentation_type}")
     
             # Processa o arquivo principal
             self.main_class_code = self._read_file(self.main_class.get("path", ""))
@@ -120,6 +125,12 @@ class FileProcessor:
     def _call_stackspot_ai(self):
         """Realiza uma chamada extra para StackSpot AI após a leitura completa do JSON."""
         try:
+            # Ajusta o execute_slug com base no tipo de documentação
+            if self.documentation_type == "Negócio":
+                self.execute_slug = "rqc-domain-documentation"
+            elif self.documentation_type == "Técnica":
+                self.execute_slug = "rqc-tech-documentation"
+
             # Construindo o prompt com os dados extraídos
             prompt = self._build_prompt()
             print(f"prompt: {prompt}")
@@ -130,26 +141,38 @@ class FileProcessor:
             response = self.quick_command_manager.poll_quick_command_status(callback_url)
 
             # Salva a resposta em um arquivo Markdown
-            self._save_to_markdown("stackspot_ai_response", response.get("result", ""))
+            self._save_to_markdown(response.get("result", ""))
         except Exception as e:
             print(f"Erro ao realizar a chamada para StackSpot AI: {e}")
 
     def _build_prompt(self):
         """Constrói o prompt para a StackSpot AI com base nos dados processados."""
-        prompt = f"""Metadata:
-        Name: {self.metadata.get('name', '')}
-        Description: {self.metadata.get('description', '')}.Extrair ou realizar um recorte as funcionalidades específica do domínio, como parte de uma estratégia de modernização do ecossistema. Utilize a abordagem de estrangulamento para realizar essa extração, garantindo que o escopo e os critérios sejam bem definidos. Certifique-se de documentar o processo, os desafios enfrentados e os resultados esperados.
+        if self.documentation_type == "Negócio":
+            # Prompt para documentação de negócio
+            prompt = f"""
+            # {self.metadata.get('name', '')}
+            {self.metadata.get('description', '')}.Extrair ou realizar um recorte as funcionalidades específica do domínio, como parte de uma estratégia de modernização do ecossistema. Utilize a abordagem de estrangulamento para realizar essa extração, garantindo que o escopo e os critérios sejam bem definidos. Certifique-se de documentar o processo, os desafios enfrentados e os resultados esperados.
 
-        Principal Domínio:
-        Classe:
-        {self.main_class_code}
-        Description: {self.main_class.get('description', '')}
-        Methods: {', '.join(self.main_class.get('methods', []))}
+            Principal Domínio:
+            Classe:
+            {self.main_class_code}
+            Methods: {', '.join(self.main_class.get('methods', []))}
 
-        Domínios Secundários:
-        """
-        for dependency in self.dependencies:
-            prompt += self._build_dependency_prompt(dependency)
+            Domínios Secundários:
+            """
+            for dependency in self.dependencies:
+                prompt += self._build_dependency_prompt(dependency)
+        elif self.documentation_type == "Técnica":
+            # Prompt para documentação técnica (apenas classes)
+            prompt = f"""
+            Classe:
+            {self.main_class_code}
+            """
+            for dependency in self.dependencies:
+                prompt += self._build_dependency_prompt(dependency)
+        else:
+            raise ValueError("Tipo de documentação inválido ou não especificado.")
+        
         return prompt
 
     def _build_dependency_prompt(self, dependency):
@@ -160,7 +183,6 @@ class FileProcessor:
         prompt = f"""
         Classe:
         {dependency_code}
-        Description: {dependency.get('description', '')}
         Methods: {', '.join(dependency.get('methods', []))}
         Subdependencies:
         """
@@ -176,17 +198,29 @@ class FileProcessor:
         prompt = f"""
             Classe:
             {subdependency_code}
-            Description: {subdependency.get('description', '')}
             Methods: {', '.join(subdependency.get('methods', []))}
         """
         return prompt
 
-    def _save_to_markdown(self, file_name, response):
+    def _save_to_markdown(self, response):
         """Salva a resposta em um arquivo Markdown."""
-        output_dir = "output"
+        # Define o diretório de saída com base no tipo de documentação
+        if self.documentation_type == "Negócio":
+            output_dir = "output/business"
+        elif self.documentation_type == "Técnica":
+            output_dir = "output/technical"
+        else:
+            raise ValueError("Tipo de documentação inválido ou não especificado.")
+
+        # Cria o diretório de saída, se necessário
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
+
+        # Define o nome do arquivo com base em metadata.name
+        file_name = self.metadata.get("name", "default_name").replace(" ", "_").lower()
         file_path = os.path.join(output_dir, f"{file_name}.md")
+
+        # Salva o conteúdo no arquivo
         with open(file_path, "w", encoding="utf-8") as file:
             file.write(response)
         print(f"Arquivo Markdown '{file_path}' salvo com sucesso.")
