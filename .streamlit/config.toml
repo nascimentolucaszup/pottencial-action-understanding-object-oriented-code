@@ -1,0 +1,8 @@
+[server]
+# Automatically rerun script when the file is modified on disk.
+# Default: false
+runOnSave = false
+
+# Max size, in megabytes, for files uploaded with the file_uploader.
+# Default: 200
+maxUploadSize = 1000

@@ -8,6 +8,7 @@ from stackspot_ai.remote_quick_command_manager import QuickCommandManager
 from stackspot_ai.token_manager import TokenManager
 from view.business_documentation import BusinessDocumentation
 from processing.class_processor import CSharpDependencyAnalyzer
+from processing.file_index_processor import CSFileIndexer
 
 # Carregar as variáveis do arquivo .env
 load_dotenv()
@@ -88,9 +89,14 @@ processor = FileProcessor(
     file_handler_processor=file_handler_processor
 )
 
+file_index_processor = CSFileIndexer(
+    base_path="file-to-analyze"
+)
+
 doc = BusinessDocumentation(
     file_processor=processor,
-    class_processor=analyzer
+    class_processor=analyzer,
+    file_index_processor=file_index_processor
 )
 
 with tab1:

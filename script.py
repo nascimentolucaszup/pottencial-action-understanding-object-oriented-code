@@ -7,6 +7,7 @@ from stackspot_ai.prompts_manager import PromptsManager
 from processing.class_processor import CSharpDependencyAnalyzer
 from processing.file_handler_processor import FileHandlerProcessor
 
+# %%
 def run(metadata):
     # Obtendo informações dos metadados
     project_path = metadata.inputs.get('project_path')
