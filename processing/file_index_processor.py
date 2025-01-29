@@ -3,17 +3,34 @@ import json
 import streamlit as st
 
 class CSFileIndexer:
-    def __init__(self, base_path=None, save_full_path=True):
+    def __init__(self, base_path=None, save_full_path=True, ignore_patterns=None):
         """
         Inicializa o indexador de arquivos .cs.
 
         Args:
             base_path (str): Caminho base do projeto. Se None, será solicitado ao usuário.
             save_full_path (bool): Se True, salva o caminho completo dos arquivos. Caso contrário, salva apenas os nomes.
+            ignore_patterns (list): Lista de padrões de nomes de arquivos ou pastas a serem ignorados.
         """
         self.base_path = base_path
         self.save_full_path = save_full_path
+        self.ignore_patterns = ignore_patterns or ["test", "tests"]
         self.cs_files = []
+
+    def should_ignore(self, path):
+        """
+        Verifica se o caminho ou arquivo deve ser ignorado com base nos padrões fornecidos.
+
+        Args:
+            path (str): Caminho ou nome do arquivo.
+
+        Returns:
+            bool: True se o caminho deve ser ignorado, False caso contrário.
+        """
+        for pattern in self.ignore_patterns:
+            if pattern.lower() in path.lower():
+                return True
+        return False
 
     def collect_cs_files(self):
         """
@@ -27,9 +44,12 @@ class CSFileIndexer:
             return []
 
         cs_files = []
-        for root, _, files in os.walk(self.base_path):
+        for root, dirs, files in os.walk(self.base_path):
+            # Filtra pastas a serem ignoradas
+            dirs[:] = [d for d in dirs if not self.should_ignore(d)]
+            
             for file in files:
-                if file.endswith(".cs"):
+                if file.endswith(".cs") and not self.should_ignore(file):
                     file_path = os.path.join(root, file)
                     cs_files.append({
                         "file_name": file,

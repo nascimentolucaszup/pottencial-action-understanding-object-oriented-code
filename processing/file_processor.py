@@ -33,6 +33,7 @@ class FileProcessor:
     def process_json(self, json_data):
         """Processa os arquivos com base no JSON fornecido."""
         try:
+            print(f"json: {json_data}")
             # Extraindo os objetos principais
             self.metadata = json_data.get("metadata", {})
             self.main_class = json_data.get("main_class", {})

@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
+from utils import loads
 from processing.file_handler_processor import FileHandlerProcessor
 from processing.file_processor import FileProcessor
 from stackspot_ai.prompts_manager import PromptsManager
@@ -76,8 +77,7 @@ quick_command_manager = QuickCommandManager(
 prompts_manager = PromptsManager()
 file_handler_processor = FileHandlerProcessor()
 
-analyzer = CSharpDependencyAnalyzer("./file-to-analyze/Pottencial.GG/Application")
-analyzer.initialize()
+analyzer = CSharpDependencyAnalyzer(loads.load_data("file-to-analyze/index.json"))
 
 # Inicializando o FileProcessor
 processor = FileProcessor(

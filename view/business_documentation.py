@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 import zipfile
 import streamlit as st
 from utils.loads import load_data
@@ -19,44 +20,102 @@ class BusinessDocumentation:
         self.file_processor = file_processor
         self.class_processor = class_processor
         self.file_index_processor = file_index_processor
-        self.files_indexrs = load_data("file-to-analyze/index.json") or None
+        self.files_indexrs = load_data("file-to-analyze/index.json")
 
-    def handle_zip_upload(self):
-        """Gerenciar o upload e descompactação de arquivos .zip."""
-        st.subheader("Upload de Arquivo ZIP")
-        uploaded_file = st.file_uploader(
-            "Faça o upload de um arquivo .zip para análise",
-            type="zip",
-            help="O objetivo deste input é descompactar o projeto para que possa ser usado para análises."
+    def handle_project_input(self):
+        """Gerenciar o upload de arquivos ZIP ou clonagem de repositórios Git."""
+        st.subheader("Importar Projeto")
+        
+        # Adicionar controle para escolha do método de importação usando segmented_control
+        import_method = st.segmented_control(
+            "Escolha o método de importação do projeto:",
+            options=["Upload de Arquivo ZIP", "Clonar Repositório Git"],
+            help="Escolha entre fazer upload de um arquivo ZIP ou clonar um repositório Git."
         )
 
-        # Verificar se a pasta "file-to-analyze" já contém arquivos
         target_dir = "file-to-analyze"
+
+        # Verificar se a pasta "file-to-analyze" já contém arquivos
         if os.path.exists(target_dir) and os.listdir(target_dir):
             st.warning(
                 "A pasta 'file-to-analyze' já contém arquivos. "
-                "Fazer o upload de um novo arquivo irá substituir o conteúdo atual."
+                "Fazer o upload de um novo arquivo ou clonar um repositório irá substituir o conteúdo atual."
             )
 
-        if uploaded_file:
-            # Excluir arquivos existentes na pasta
-            if os.path.exists(target_dir):
-                shutil.rmtree(target_dir)
-            os.makedirs(target_dir, exist_ok=True)
+        if import_method == "Upload de Arquivo ZIP":
+            # Gerenciar upload de arquivo ZIP
+            uploaded_file = st.file_uploader(
+                "Faça o upload de um arquivo .zip para análise",
+                type="zip",
+                help="O objetivo deste input é descompactar o projeto para que possa ser usado para análises."
+            )
 
-            # Salvar e descompactar o arquivo .zip
-            with open(os.path.join(target_dir, "uploaded.zip"), "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            with zipfile.ZipFile(os.path.join(target_dir, "uploaded.zip"), "r") as zip_ref:
-                zip_ref.extractall(target_dir)
+            if uploaded_file:
+                # Excluir arquivos existentes na pasta
+                if os.path.exists(target_dir):
+                    shutil.rmtree(target_dir)
+                os.makedirs(target_dir, exist_ok=True)
+
+                # Salvar e descompactar o arquivo .zip
+                with open(os.path.join(target_dir, "uploaded.zip"), "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                with zipfile.ZipFile(os.path.join(target_dir, "uploaded.zip"), "r") as zip_ref:
+                    zip_ref.extractall(target_dir)
                 os.remove(os.path.join(target_dir, "uploaded.zip"))
-                self.files_indexrs = self.files_indexrs = self.file_index_processor.collect_cs_files()
+
+                # Processar os arquivos extraídos
+                self.files_indexrs = self.file_index_processor.collect_cs_files()
                 self.file_index_processor.save_as_json(
                     os.path.join(target_dir, "index.json")
                 )
 
-            st.success("Arquivo descompactado com sucesso!")
-            st.info(f"Os arquivos foram extraídos para a pasta '{target_dir}'.")
+                st.success("Arquivo descompactado com sucesso!")
+                st.info(f"Os arquivos foram extraídos para a pasta '{target_dir}'.")
+
+        elif import_method == "Clonar Repositório Git":
+            # Gerenciar clonagem de repositório Git
+            repo_url = st.text_input(
+                "URL do Repositório Git",
+                placeholder="Exemplo: https://github.com/usuario/repositorio.git",
+                help="Insira a URL do repositório Git que deseja clonar."
+            )
+            is_private = st.checkbox(
+                "Repositório Privado",
+                help="Marque esta opção se o repositório for privado."
+            )
+
+            if is_private:
+                username = st.text_input("Usuário", placeholder="Seu nome de usuário")
+                token = st.text_input("Token de Acesso", placeholder="Seu token de acesso", type="password")
+                if repo_url and username and token:
+                    # Modificar a URL para incluir as credenciais
+                    repo_url = repo_url.replace("https://", f"https://{username}:{token}@")
+
+            if st.button("Clonar Repositório"):
+                if repo_url:
+                    # Excluir arquivos existentes na pasta
+                    if os.path.exists(target_dir):
+                        shutil.rmtree(target_dir)
+                    os.makedirs(target_dir, exist_ok=True)
+
+                    # Clonar o repositório
+                    try:
+                        subprocess.run(
+                            ["git", "clone", repo_url, target_dir],
+                            check=True,
+                            text=True
+                        )
+                        # Processar os arquivos clonados
+                        self.files_indexrs = self.file_index_processor.collect_cs_files()
+                        self.file_index_processor.save_as_json(
+                            os.path.join(target_dir, "index.json")
+                        )
+                        st.success("Repositório clonado com sucesso!")
+                        st.info(f"Os arquivos foram clonados para a pasta '{target_dir}'.")
+                    except subprocess.CalledProcessError as e:
+                        st.error(f"Erro ao clonar o repositório: {e}")
+                else:
+                    st.error("Por favor, insira uma URL válida para o repositório.")
 
     def validate_inputs(self):
         """Validar os inputs obrigatórios com base no modo de execução."""
@@ -102,7 +161,7 @@ class BusinessDocumentation:
         st.subheader("Tipo de Documentação")
         st.session_state.documentation_type = st.segmented_control(
             "Selecione o objetivo da documentação:",
-            options=["Técnica", "Negócio"],
+            options=["Técnica", "Negócio", "Modernização"],
             help=(
                 "Documentação Técnica: Focada em detalhes técnicos, como classes, métodos e dependências.\n"
                 "Documentação de Negócio: Focada em descrever o domínio e os objetivos de negócio."
@@ -164,9 +223,8 @@ class BusinessDocumentation:
 
             if search_results:
                 selected_file = st.selectbox(
-                    "Classe Principal Selecionada",
-                    [file["file_name"] for file in search_results],
-                    disabled=True
+                    "Selecione a Classe Principal",
+                    [file["file_name"] for file in search_results]
                 )
                 # Obter o caminho completo do arquivo selecionado
                 selected_path = next(
@@ -262,7 +320,7 @@ class BusinessDocumentation:
     def render(self):
         """Renderizar toda a interface da documentação de negócio."""
         st.title("Documentações")
-        self.handle_zip_upload()
+        self.handle_project_input()
         self.render_controls()  # Adicionar os controles no início
         self.render_metadata_section()
         self.render_main_class_section()
