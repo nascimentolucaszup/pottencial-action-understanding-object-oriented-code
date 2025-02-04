@@ -17,10 +17,23 @@ class BusinessDocumentation:
             st.session_state.execution_mode = "Manual"
         if "documentation_type" not in st.session_state:
             st.session_state.documentation_type = "Negócio"
+        if "selected_patterns" not in st.session_state:
+            st.session_state.selected_patterns = []
         self.file_processor = file_processor
         self.class_processor = class_processor
         self.file_index_processor = file_index_processor
         self.files_indexrs = load_data("file-to-analyze/index.json")
+        # Lista de padrões de nomenclatura
+        self.patterns = [
+            "controller", "business", "model", "view", "api", "service", "resource", "event", "handler",
+            "listener", "microservice", "gateway", "proxy", "repository", "entity", "dto",
+            "dao", "aggregate", "valueobject", "factory", "specification", "test", "spec",
+            "mock", "stub", "fixture", "component", "directive", "module", "widget",
+            "middleware", "interceptor", "adapter", "logger", "monitor", "metrics", "auth",
+            "authorization", "authentication", "token", "config", "settings", "env",
+            "deployment", "schema", "migration", "seeder", "index", "layout", "template",
+            "style", "theme", "helper", "util", "common", "base", "core"
+        ]
 
     def handle_project_input(self):
         """Gerenciar o upload de arquivos ZIP ou clonagem de repositórios Git."""
@@ -143,9 +156,7 @@ class BusinessDocumentation:
         return True
 
     def render_controls(self):
-        """Renderizar os controles iniciais no início da página e torná-los obrigatórios."""
-        st.header("Configurações Iniciais")
-    
+        """Renderizar os controles iniciais no início da página e torná-los obrigatórios."""    
         # Controle para o modo de execução
         st.subheader("Modo de Execução")
         st.session_state.execution_mode = st.segmented_control(
@@ -167,9 +178,19 @@ class BusinessDocumentation:
                 "Documentação de Negócio: Focada em descrever o domínio e os objetivos de negócio."
             )
         )
+
+        st.subheader("Nomenclaturas")
+        # Renderiza os padrões de nomenclatura no componente multiselect
+        st.session_state.selected_patterns = st.segmented_control(
+            "Selecione os padrões de nomenclatura que deseja processar:",
+            options=self.patterns,
+            default=[],
+            selection_mode="multi",
+            help="Escolha os padrões que serão utilizados no processamento."
+        )
     
         # Validação para garantir que o usuário selecione as opções
-        if not st.session_state.execution_mode or not st.session_state.documentation_type:
+        if not st.session_state.execution_mode or not st.session_state.documentation_type or not st.session_state.selected_patterns:
             st.error("Por favor, selecione o modo de execução e o tipo de documentação antes de prosseguir.")
             st.stop()  # Interrompe a execução até que o usuário preencha os campos obrigatórios
 
@@ -280,46 +301,116 @@ class BusinessDocumentation:
 
     def render_actions(self):
         """Renderizar os botões de ação no final da página."""
-        col1, col2 = st.columns(2)
+        st.subheader("Ações")
+    
+        # Botão para adicionar dependência principal
         if st.session_state.execution_mode == "Manual":
-            with col1:
-                if st.button("Adicionar Dependência Principal"):
-                    st.session_state.dependencies.append({
-                        "path": "",
-                        "methods": [],
-                        "subdependencies": []
+            if st.button("Adicionar Dependência Principal"):
+                st.session_state.dependencies.append({
+                    "path": "",
+                    "methods": [],
+                    "subdependencies": []
+                })
+                st.rerun()
+    
+        # Botão para salvar configurações
+        if st.button("Salvar Configurações"):
+            if self.validate_inputs():
+                # Estrutura final
+                domain_structure = {
+                    "metadata": self.metadata,
+                    "main_class": self.main_class,
+                    "dependencies": st.session_state.dependencies,
+                    "execution_mode": st.session_state.execution_mode,
+                    "documentation_type": st.session_state.documentation_type,
+                }
+                st.session_state.domain_structure = domain_structure  # Salvar no estado da sessão
+                st.success("Configurações salvas com sucesso!")
+                print(f"st.session_state.selected_patterns: {st.session_state.selected_patterns}")
+                # Processar dados no modo automatizado
+                if st.session_state.execution_mode == "Automatizado":
+                    json_data = self.class_processor.generate_json_report(self.main_class.get('path', None), 2, st.session_state.selected_patterns)
+                    if isinstance(json_data, str):
+                        try:
+                            json_data = json.loads(json_data)  # Converte a string JSON para um dicionário
+                        except json.JSONDecodeError as e:
+                            print(f"Erro ao decodificar JSON: {e}")
+                            json_data = {}  # Define um dicionário vazio como fallback
+                    domain_structure["dependencies"] = json_data.get('dependencies', {})
+                    st.session_state.domain_structure = domain_structure  # Atualizar no estado da sessão
+    
+        # Renderizar tabela apenas se as configurações foram salvas
+        if "domain_structure" in st.session_state:
+            domain_structure = st.session_state.domain_structure
+    
+            st.subheader("Tabela de Dependências e Subdependências")
+    
+            # Preparar dados para exibição na tabela
+            table_data = []
+    
+            # Adicionar a classe principal
+            table_data.append({
+                "Classe": "Principal",
+                "Path": domain_structure["main_class"].get("path", "Caminho não especificado"),
+                "Métodos": ", ".join(domain_structure["main_class"].get("methods", [])),
+                "Pertence à": "Principal",
+            })
+    
+            # Adicionar dependências e subdependências
+            for dependency in domain_structure["dependencies"]:
+                # Adicionar dependência principal
+                table_data.append({
+                    "Classe": "Dependência",
+                    "Path": dependency.get("path", "Caminho não especificado"),
+                    "Métodos": ", ".join(dependency.get("methods", [])),
+                    "Pertence à": "Principal",
+                })
+    
+                # Adicionar subdependências
+                for subdependency in dependency.get("subdependencies", []):
+                    table_data.append({
+                        "Classe": "Subdependência",
+                        "Path": subdependency.get("path", "Caminho não especificado"),
+                        "Métodos": ", ".join(subdependency.get("methods", [])),
+                        "Pertence à": dependency.get("path", "Caminho não especificado"),
                     })
-                    st.rerun()
-        with col2:
-            if st.button("Salvar Configurações"):
-                if self.validate_inputs():
-                    # Estrutura final
-                    domain_structure = {
-                        "metadata": self.metadata,
-                        "main_class": self.main_class,
-                        "dependencies": st.session_state.dependencies,
-                        "execution_mode": st.session_state.execution_mode,
-                        "documentation_type": st.session_state.documentation_type
+    
+            # Renderizar tabela interativa apenas para visualização
+            st.data_editor(
+                table_data,
+                column_config={
+                    "Classe": "Classe",
+                    "Path": "Caminho",
+                    "Métodos": "Métodos",
+                    "Pertence à": "Pertence à"
+                },
+                use_container_width=True,
+                disabled=True  # Desabilitar edição
+            )
+
+            # Botão para processar os arquivos
+            if st.button("Processar Arquivos"):
+                # Processar todos os arquivos listados
+                all_files = [
+                    {
+                        "path": row["Path"],
+                        "methods": row["Métodos"].split(", "),
+                        "subdependencies": []  # Subdependências podem ser adicionadas aqui, se necessário
                     }
-                    st.success("Configurações salvas com sucesso!")
-                    json_data = None
-                    print(f"{self.main_class.get('path', None)}")
-                    if st.session_state.execution_mode == "Automatizado":
-                        json_data = self.class_processor.generate_json_report(self.main_class.get('path', None), 2)
-                        # Certifique-se de que json_data seja um dicionário
-                        if isinstance(json_data, str):
-                            try:
-                                json_data = json.loads(json_data)  # Converte a string JSON para um dicionário
-                            except json.JSONDecodeError as e:
-                                print(f"Erro ao decodificar JSON: {e}")
-                                json_data = {}  # Define um dicionário vazio como fallback
-                        domain_structure["dependencies"] = json_data.get('dependencies', {})
-                    st.json(domain_structure)
+                    for row in table_data if row["Classe"] in ["Dependência", "Subdependência"]
+                ]
+
+                # Remontar o domain_structure com todos os arquivos
+                if all_files:
+                    domain_structure["dependencies"] = all_files
+                    st.success(f"Processando {len(all_files)} arquivo(s)...")
+                    # st.json(domain_structure)
                     self.file_processor.process_json(domain_structure)
+                else:
+                    st.warning("Nenhum arquivo encontrado para processamento.")        
 
     def render(self):
         """Renderizar toda a interface da documentação de negócio."""
-        st.title("Documentações")
         self.handle_project_input()
         self.render_controls()  # Adicionar os controles no início
         self.render_metadata_section()

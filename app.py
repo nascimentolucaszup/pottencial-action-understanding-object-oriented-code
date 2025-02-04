@@ -59,7 +59,7 @@ def render_home():
     )
 
 # Sidebar para navegação
-tab1, tab2 = st.tabs(["Home", "Documentação de Negócio"])
+tab1, tab2 = st.tabs(["Home", "Ajuda"])
 
 token_manager = TokenManager(
     account_slug,
@@ -100,6 +100,6 @@ doc = BusinessDocumentation(
 )
 
 with tab1:
-    render_home()
-with tab2:
     doc.render()
+with tab2:
+    render_home()
